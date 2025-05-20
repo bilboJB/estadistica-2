@@ -4,7 +4,10 @@ author:
 - Javier Bravo C.I. 27736325
 - Luis Carrillo C.I. 27539960
 date: "`r Sys.Date()`"
-output: word_document
+output: 
+  word_document:
+    toc: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -13,8 +16,46 @@ library(tidyverse)
 library(Lock5Data)
 ```
 
-## Introducción
+## Requerimientos
 
+determinar si existen diferencias entre los grupos de individuos estudiados (hay que hacer distintos grupos para comparar ej
+hombres/mujeres, fumadores/no fumadores/antes fumadores, bebedores/no bebedores, no vitamina/regular/ocacional,
+)
+
+Qué recomendaciones de salud puede dar a mujeres y a hombres (encontrar niveles no sanos en alguna categoria para mujeres y hombres y dar una 
+recomendacion)
+
+Qué riesgos de salud ha encontrado después de hacer los análisis
+
+Un análisis descriptivo y gráfico de las variables que considere y con el cual demuestre comportamientos de centralización, variabilidad, posición y curtosis de las variables
+
+En una segunda parte, deberá hacer inferencia estadística usando un nivel de significancia (alpha) de 5%. Para la inferencia deberá definir lo siguiente: 
+•	Las variables que considerará y su escala de medición. 
+•	La verificación de la normalidad cuando corresponda (tanto gráficamente como usando el test de Shapiro, u otros test que correspondan). 
+•	 Las hipótesis a contrastar (bilateral o unilateral) en cada caso.
+•	 Parámetros a estimar. 
+•	Estimadores y sus modelos de probabilidad. 
+•	 Si hay dos poblaciones que se comparan en promedio, deberá comprobar si las varianzas poblaciones se asumen iguales o no. 
+•	 El criterio para decidir cuál hipótesis se elige, deberá ser a través de 2 criterios: el p-value (valor-p) y el intervalo de confianza. 
+•	 Si hay más de dos (2) poblaciones a comparar en promedio, deberá proponer la mejor forma de comparar las medias. Proponga un método para comparar más de dos (2) poblaciones.
+•	 Si hay alguna de las variables a estudiar que no cumpla la Normalidad y deba incluirse en el estudio, de qué forma usted la incluiría para que no viole la condición de normalidad. 
+
+
+# Introducción
+
+# Resumen
+
+# Antecedentes
+
+# Metodología Estadistica Empleada
+
+# Presentación de Resultados
+
+# Discución de los Resultados
+
+# Recomendaciones
+
+# Referencias Bibliográficas
 
 ```{r NutritionStudy}
 summary(NutritionStudy)
