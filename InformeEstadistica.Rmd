@@ -1,0 +1,32 @@
+---
+title: "Análisis de Modelos estadísticos"
+author: 
+- Javier Bravo C.I. 27736325
+- Luis Carrillo C.I. 27539960
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(Lock5Data)
+```
+
+## Introducción
+
+
+```{r NutritionStudy}
+summary(NutritionStudy)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r Histograma de edades, echo=FALSE}
+ggplot(NutritionStudy, aes(x = Age)) +
+  geom_histogram()
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
