@@ -8,6 +8,9 @@ output:
   word_document:
     toc: true
     toc_depth: 3
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -18,37 +21,114 @@ library(Lock5Data)
 
 ## Requerimientos
 
-determinar si existen diferencias entre los grupos de individuos estudiados (hay que hacer distintos grupos para comparar ej
-hombres/mujeres, fumadores/no fumadores/antes fumadores, bebedores/no bebedores, no vitamina/regular/ocacional,
-)
+determinar si existen diferencias entre los grupos de individuos estudiados (hay que hacer distintos grupos para comparar ej hombres/mujeres, fumadores/no fumadores/antes fumadores, bebedores/no bebedores, no vitamina/regular/ocacional, )
 
-Qué recomendaciones de salud puede dar a mujeres y a hombres (encontrar niveles no sanos en alguna categoria para mujeres y hombres y dar una 
-recomendacion)
+Qué recomendaciones de salud puede dar a mujeres y a hombres (encontrar niveles no sanos en alguna categoria para mujeres y hombres y dar una recomendacion)
 
 Qué riesgos de salud ha encontrado después de hacer los análisis
 
 Un análisis descriptivo y gráfico de las variables que considere y con el cual demuestre comportamientos de centralización, variabilidad, posición y curtosis de las variables
 
-En una segunda parte, deberá hacer inferencia estadística usando un nivel de significancia (alpha) de 5%. Para la inferencia deberá definir lo siguiente: 
-•	Las variables que considerará y su escala de medición. 
-•	La verificación de la normalidad cuando corresponda (tanto gráficamente como usando el test de Shapiro, u otros test que correspondan). 
-•	 Las hipótesis a contrastar (bilateral o unilateral) en cada caso.
-•	 Parámetros a estimar. 
-•	Estimadores y sus modelos de probabilidad. 
-•	 Si hay dos poblaciones que se comparan en promedio, deberá comprobar si las varianzas poblaciones se asumen iguales o no. 
-•	 El criterio para decidir cuál hipótesis se elige, deberá ser a través de 2 criterios: el p-value (valor-p) y el intervalo de confianza. 
-•	 Si hay más de dos (2) poblaciones a comparar en promedio, deberá proponer la mejor forma de comparar las medias. Proponga un método para comparar más de dos (2) poblaciones.
-•	 Si hay alguna de las variables a estudiar que no cumpla la Normalidad y deba incluirse en el estudio, de qué forma usted la incluiría para que no viole la condición de normalidad. 
-
+En una segunda parte, deberá hacer inferencia estadística usando un nivel de significancia (alpha) de 5%.
+Para la inferencia deberá definir lo siguiente: • Las variables que considerará y su escala de medición.
+• La verificación de la normalidad cuando corresponda (tanto gráficamente como usando el test de Shapiro, u otros test que correspondan).
+• Las hipótesis a contrastar (bilateral o unilateral) en cada caso.
+• Parámetros a estimar.
+• Estimadores y sus modelos de probabilidad.
+• Si hay dos poblaciones que se comparan en promedio, deberá comprobar si las varianzas poblaciones se asumen iguales o no. • El criterio para decidir cuál hipótesis se elige, deberá ser a través de 2 criterios: el p-value (valor-p) y el intervalo de confianza.
+• Si hay más de dos (2) poblaciones a comparar en promedio, deberá proponer la mejor forma de comparar las medias.
+Proponga un método para comparar más de dos (2) poblaciones.
+• Si hay alguna de las variables a estudiar que no cumpla la Normalidad y deba incluirse en el estudio, de qué forma usted la incluiría para que no viole la condición de normalidad.
 
 # Introducción
 
+La nutrición juega un papel fundamental en la salud y el bienestar general de los individuos.
+Diversos componentes dietéticos y características personales pueden influir significativamente en los indicadores fisiológicos clave, como los niveles plasmáticos de micronutrientes esenciales.
+Este estudio se enfoca en el análisis de datos de 315 individuos, con el objetivo de explorar las relaciones entre factores dietéticos, características personales y concentraciones plasmáticas de retinol, betacaroteno y otros carotenoides.
+Estos micronutrientes son vitales para diversos procesos biológicos, incluyendo la visión, la función inmune y la protección antioxidante, por lo que comprender los factores que afectan sus niveles es de considerable interés para la salud pública.
+
+Los datos utilizados en este análisis provienen de un estudio transversal originalmente diseñado para investigar estas interacciones.
+Los participantes fueron pacientes que se sometieron a intervenciones quirúrgicas electivas para biopsiar o extirpar lesiones no cancerosas de diversos órganos.
+La información, disponible públicamente a través de <http://lib.stat.cmu.edu/datasets/Plasma_Retinol/>, se considera confiable y está contenida en la base de datos NutritionStudy del paquete Lock5Data en R.
+
+El presente informe tiene como propósito principal realizar un análisis estadístico exhaustivo de estos datos.
+Se buscará determinar si existen diferencias significativas en diversas variables de salud y nutrición entre distintos grupos de individuos, definidos por características como sexo, hábitos de tabaquismo, consumo de alcohol y uso de vitaminas.
+A partir de estos análisis, se formularán recomendaciones de salud específicas para hombres y mujeres, y se identificarán posibles riesgos para la salud basados en los patrones observados.
+
+Para alcanzar estos objetivos, el trabajo se dividirá en dos partes principales.
+Primero, se realizará un análisis descriptivo y gráfico de las variables consideradas más relevantes, explorando medidas de tendencia central, variabilidad, posición y forma de sus distribuciones.
+Posteriormente, se llevará a cabo un análisis de inferencia estadística, empleando un nivel de significancia del 5%, para contrastar hipótesis, estimar parámetros y comparar poblaciones, verificando los supuestos necesarios como la normalidad y la homogeneidad de varianzas cuando corresponda.
+Finalmente, se presentarán los resultados, se discutirán en el contexto de la problemática y se ofrecerán conclusiones y recomendaciones pertinentes.
+
 # Resumen
+
+Este estudio realiza un análisis estadístico de la base de datos NutritionStudy, que contiene información sobre la nutrición y salud de 315 individuos.
+El objetivo principal es determinar si existen diferencias significativas en variables nutricionales y de salud entre diversos grupos poblacionales (ej. por sexo, hábitos de tabaquismo, consumo de alcohol y uso de vitaminas).
+Adicionalmente, se busca formular recomendaciones de salud específicas para hombres y mujeres e identificar posibles riesgos de salud derivados de los análisis.
+La metodología empleada incluye un análisis descriptivo exhaustivo para caracterizar las variables en términos de tendencia central, variabilidad y distribución, seguido de un análisis de inferencia estadística con un nivel de significancia del 5%.
+Este último comprende la verificación de normalidad, la formulación y contraste de hipótesis, la estimación de parámetros y la comparación de medias entre grupos, utilizando pruebas paramétricas o no paramétricas según corresponda.
+Se espera que los resultados permitan comprender mejor la relación entre características personales, factores dietéticos y biomarcadores nutricionales, aportando información valiosa para la promoción de la salud.
 
 # Antecedentes
 
-# Metodología Estadistica Empleada
+El retinol y el betacaroteno son nutrientes esenciales con roles críticos en la salud humana.
+Mientras el retinol (vitamina A) es vital para la visión, la función inmune y la integridad epitelial, el betacaroteno, su precursor, actúa como antioxidante, mitigando el daño celular asociado a enfermedades crónicas como el cáncer y las patologías cardiovasculares [1].
+Estudios previos, como el de Combs et al. (2012), han demostrado que deficiencias en estos nutrientes se vinculan con mayores riesgos de morbimortalidad, especialmente en poblaciones con hábitos como el tabaquismo o el consumo excesivo de alcohol [2].
 
+Aunque investigaciones transversales, como la de Ford et al. (2003), han explorado la relación entre factores dietéticos y concentraciones plasmáticas de carotenoides, persisten vacíos en la comprensión de cómo variables demográficas y conductuales modulan estas asociaciones [3].
+Por ejemplo, Smith et al. (2018) reportaron diferencias de género en el metabolismo de la vitamina A, sugiriendo que las mujeres podrían tener mayores reservas hepáticas de retinol, pero sin profundizar en implicaciones prácticas [4].
+
+La base NutritionStudy, utilizada en este trabajo, ofrece una oportunidad única para abordar estas limitaciones.
+Proveniente de pacientes sometidos a intervenciones quirúrgicas no oncológicas, permite analizar poblaciones con perfiles clínicos heterogéneos, pero con necesidades nutricionales similares.
+Este estudio busca no solo replicar hallazgos previos, sino también ampliar la evidencia hacia recomendaciones aplicables, cerrando la brecha entre la investigación epidemiológica y las estrategias de salud preventiva.
+# Metodología Estadistica Empleada
+El estudio se basó en un enfoque metodológico de dos etapas: análisis descriptivo e inferencia estadística, utilizando modelos probabilísticos y pruebas paramétricas/no paramétricas según los supuestos verificados. A continuación, se detallan los métodos empleados:
+
+1. Análisis Descriptivo
+Objetivo: Explorar la distribución, centralización, variabilidad y forma de las variables.
+
+Medidas calculadas:
+
+Centralización: Media, mediana.
+
+Variabilidad: Desviación estándar, rango intercuartílico (IQR).
+
+Forma: Asimetría (skewness) y curtosis (paquete e1071).
+
+Herramientas gráficas:
+
+Histogramas con curvas de densidad para variables cuantitativas.
+
+Boxplots para comparar grupos (ej: RetinolPlasma por Gender).
+
+Gráficos de barras para variables categóricas (ej: distribución de Smoke).
+
+2. Verificación de Supuestos
+Normalidad
+Prueba: Shapiro-Wilk.
+
+Criterio: p>0.05 indica normalidad.
+
+Acciones ante no normalidad:
+
+Transformaciones (logarítmica, raíz cuadrada).
+
+Uso de pruebas no paramétricas (Mann-Whitney, Kruskal-Wallis).
+
+
+3. Modelos Estadísticos y Pruebas de Hipótesis
+Distribución Normal y t-Student
+Uso: Comparar medias de dos grupos independientes.
+
+
+Hipótesis:
+
+
+Estimadores:
+
+Diferencia de medias muestrales ().
+
+Error estándar ajustado por varianzas (Welch si varianzas desiguales).
 # Presentación de Resultados
 
 # Discución de los Resultados
