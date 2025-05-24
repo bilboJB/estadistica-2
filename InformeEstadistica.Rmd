@@ -17,6 +17,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(Lock5Data)
+library(moments)
 ```
 
 ## Requerimientos
@@ -81,37 +82,197 @@ Por ejemplo, Smith et al. (2018) reportaron diferencias de género en el metabol
 La base NutritionStudy, utilizada en este trabajo, ofrece una oportunidad única para abordar estas limitaciones.
 Proveniente de pacientes sometidos a intervenciones quirúrgicas no oncológicas, permite analizar poblaciones con perfiles clínicos heterogéneos, pero con necesidades nutricionales similares.
 Este estudio busca no solo replicar hallazgos previos, sino también ampliar la evidencia hacia recomendaciones aplicables, cerrando la brecha entre la investigación epidemiológica y las estrategias de salud preventiva.
+
 # Metodología Estadistica Empleada
 El estudio se basó en un enfoque metodológico de dos etapas: análisis descriptivo e inferencia estadística, utilizando modelos probabilísticos y pruebas paramétricas/no paramétricas según los supuestos verificados. A continuación, se detallan los métodos empleados:
 
 1. Análisis Descriptivo
 Objetivo: Explorar la distribución, centralización, variabilidad y forma de las variables.
-
+```r
+data("NutritionStudy")
+# Ver la estructura del conjunto de datos
+str(NutritionStudy)
+# Ver las primeras filas
+head(NutritionStudy)
+# Resumen estadístico básico
+summary(NutritionStudy)
+```
 Medidas calculadas:
+```{r, echo=FALSE}
+NutritionStudy <- NutritionStudy %>%
+  mutate(
+    PriorSmoke = factor(PriorSmoke, levels = c(1, 2, 3), labels = c("Nunca", "Antiguo Fumador", "Fumador Actual")),
+    Vitamin = factor(Vitamin, levels = c(1, 2, 3), labels = c("Nunca", "Uso Ocasional", "Uso Regular"))
+  )
+
+```
 
 Centralización: Media, mediana.
 
 Variabilidad: Desviación estándar, rango intercuartílico (IQR).
 
-Forma: Asimetría (skewness) y curtosis (paquete e1071).
+Forma: Asimetría (skewness) y curtosis.
 
 Herramientas gráficas:
 
-Histogramas con curvas de densidad para variables cuantitativas.
+```{r}
+# Variables cuantitativas de interés para el análisis descriptivo
+vars_cuantitativas_foco <- c("Cholesterol", "Fat")
 
-Boxplots para comparar grupos (ej: RetinolPlasma por Gender).
+# Bucle para generar estadísticas descriptivas y gráficos combinados para cada variable cuantitativa
+for (var in vars_cuantitativas_foco) {
+  cat("### Variable Cuantitativa:", var, "\n")
+  cat("#### Medidas de Centralización y Variabilidad\n")
+  print(NutritionStudy %>%
+          summarise(
+            Media = mean(!!sym(var), na.rm = TRUE),
+            Mediana = median(!!sym(var), na.rm = TRUE),
+            `Desv. Estándar` = sd(!!sym(var), na.rm = TRUE),
+            `Rango Intercuartílico` = IQR(!!sym(var), na.rm = TRUE),
+            Mínimo = min(!!sym(var), na.rm = TRUE),
+            Máximo = max(!!sym(var), na.rm = TRUE)
+          ))
 
-Gráficos de barras para variables categóricas (ej: distribución de Smoke).
+  cat("#### Medidas de Posición y Curtosis\n")
+  print(NutritionStudy %>%
+          summarise(
+            Q1 = quantile(!!sym(var), 0.25, na.rm = TRUE),
+            Q3 = quantile(!!sym(var), 0.75, na.rm = TRUE),
+            Asimetria = skewness(!!sym(var), na.rm = TRUE),
+            Curtosis = kurtosis(!!sym(var), na.rm = TRUE)
+          ))
+
+  cat("#### Gráfico Combinado (Histograma y Densidad)\n")
+  p_combined <- ggplot(NutritionStudy, aes(x = !!sym(var))) +
+    geom_histogram(aes(y = after_stat(density)), binwidth = diff(range(NutritionStudy[[var]], na.rm = TRUE))/30, fill = "skyblue", color = "black", alpha = 0.7) +
+    geom_density(color = "red", linetype = "dashed", linewidth = 1) +
+    labs(title = paste("Histograma y Densidad de", var), x = var, y = "Densidad") +
+    theme_minimal()
+  print(p_combined)
+  
+  cat("#### Gráfico de Caja (Boxplot)\n")
+  p_boxplot <- ggplot(NutritionStudy, aes(y = !!sym(var))) +
+    geom_boxplot(fill = "lightcoral", color = "black") +
+    labs(title = paste("Gráfico de Caja de", var), y = var) +
+    theme_minimal()
+  print(p_boxplot)
+}
+```
+
+```{r}
+# Variables cualitativas de interés para el análisis descriptivo
+vars_cualitativas_foco <- c("Sex", "PriorSmoke")
+
+for (var in vars_cualitativas_foco) {
+  cat("### Variable Cualitativa:", var, "\n")
+  cat("#### Tabla de Frecuencia y Proporciones\n")
+  freq_table <- table(NutritionStudy[[var]])
+  prop_table <- prop.table(freq_table)
+  print(freq_table)
+  print(prop_table)
+
+  cat("#### Gráfico de Barras\n")
+  p_bar <- ggplot(NutritionStudy, aes(x = !!sym(var), fill = !!sym(var))) +
+    geom_bar() +
+    labs(title = paste("Distribución de", var), x = var, y = "Frecuencia") +
+    theme_minimal()
+  print(p_bar)
+}
+```
+```{r}
+cat("### Gráfico de Colesterol por Género\n")
+ggplot(NutritionStudy, aes(x = Sex, y = Cholesterol, fill = Sex)) +
+  geom_boxplot() +
+  labs(title = "Nivel de Colesterol por Género", x = "Género", y = "Colesterol") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Female" = "pink", "Male" = "lightblue"))
+
+cat("\n### Gráfico de Grasa por Consumo Previo de Tabaco\n")
+ggplot(NutritionStudy, aes(x = PriorSmoke, y = Fat, fill = PriorSmoke)) +
+  geom_boxplot() +
+  labs(title = "Consumo de Grasa por Consumo Previo de Tabaco", x = "Consumo Previo de Tabaco", y = "Gras") +
+  theme_minimal()
+```
 
 2. Verificación de Supuestos
 Normalidad
 Prueba: Shapiro-Wilk.
+```{r}
+# Función para verificar normalidad para cada grupo
+check_normality_by_group <- function(data, quantitative_var, group_var) {
+  cat("\n--- Verificación de Normalidad para:", quantitative_var, "por", group_var, "---\n")
+  groups <- levels(data[[group_var]])
+  if (is.null(groups)) { # Manejo para variables no factor que son group_var (e.g. Sex que ya es factor en el dataframe original)
+    groups <- unique(data[[group_var]])
+  }
+
+  for (g in groups) {
+    subset_data <- data %>% filter(!!sym(group_var) == g)
+    var_data <- na.omit(subset_data[[quantitative_var]])
+    if (length(var_data) < 3) { # Shapiro.test requiere al menos 3 datos
+      cat("No hay suficientes datos para el grupo", g, "para el test de Shapiro-Wilk.\n")
+      next
+    }
+    cat("\nNormalidad para el grupo:", g, " (", quantitative_var, "):\n")
+    # Test de Shapiro-Wilk
+    shapiro_res <- shapiro.test(var_data)
+    cat("Test de Shapiro-Wilk:\n")
+    print(shapiro_res)
+    if (shapiro_res$p.value < 0.05) {
+      cat("El p-value (", round(shapiro_res$p.value, 4), ") es menor que 0.05. Se rechaza la hipótesis nula de normalidad para este grupo.\n")
+    } else {
+      cat("El p-value (", round(shapiro_res$p.value, 4), ") es mayor o igual que 0.05. No hay evidencia para rechazar la hipótesis nula de normalidad para este grupo.\n")
+    }
+  }
+}
+
+# Ejecutar verificación de normalidad por grupo para las variables de interés
+check_normality_by_group(NutritionStudy, "Cholesterol", "Sex")
+check_normality_by_group(NutritionStudy, "Fat", "PriorSmoke")
+```
 
 Criterio: p>0.05 indica normalidad.
 
 Acciones ante no normalidad:
+```{r}
+# Renombrar las variables numéricas a categóricas para mejor interpretación
+NutritionStudy <- NutritionStudy %>%
+  mutate(
+    Cholesterol_log = log(Cholesterol),
+    Fat_log = log(Fat)
+  )
+```
 
 Transformaciones (logarítmica, raíz cuadrada).
+```{r inferencia_cholesterol_Sex_transformada}
+# Vuelve a verificar la normalidad con la variable logarítmica
+norm_male_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Male") %>% pull(Cholesterol_log)))$p.value >= 0.05
+norm_female_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Female") %>% pull(Cholesterol_log)))$p.value >= 0.05
+
+if (norm_male_chol_log && norm_female_chol_log) {
+  use_transformed_chol <- TRUE
+  cat("La variable logarítmica de Colesterol cumple la normalidad en ambos grupos.\n")
+  current_chol_var <- "Cholesterol_log"
+} else {
+  cat("La variable logarítmica de Colesterol NO cumple la normalidad en al menos un grupo.\n")
+  current_chol_var <- "Cholesterol"
+}
+
+norm_1_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Nunca") %>% pull(Fat_log)))$p.value >= 0.05
+norm_2_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Antiguo Fumador") %>% pull(Fat_log)))$p.value >= 0.05
+norm_3_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Fumador Actual") %>% pull(Fat_log)))$p.value >= 0.05
+
+
+if (norm_1_fat_log && norm_2_fat_log && norm_3_fat_log) {
+  use_transformed_fat <- TRUE
+  # Corrección del mensaje para reflejar 3 grupos.
+  cat("La variable logarítmica de Grasa cumple la normalidad en todos los grupos.\n")
+  current_fat_var <- "Fat_log"
+} else {
+  cat("La variable logarítmica de Grasa NO cumple la normalidad en al menos un grupo.\n")
+  current_fat_var <- "Fat"
+}
+```
 
 Uso de pruebas no paramétricas (Mann-Whitney, Kruskal-Wallis).
 
