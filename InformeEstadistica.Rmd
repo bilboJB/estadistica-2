@@ -18,28 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(Lock5Data)
 library(moments)
+library(car)
 ```
-
-## Requerimientos
-
-determinar si existen diferencias entre los grupos de individuos estudiados (hay que hacer distintos grupos para comparar ej hombres/mujeres, fumadores/no fumadores/antes fumadores, bebedores/no bebedores, no vitamina/regular/ocacional, )
-
-Qué recomendaciones de salud puede dar a mujeres y a hombres (encontrar niveles no sanos en alguna categoria para mujeres y hombres y dar una recomendacion)
-
-Qué riesgos de salud ha encontrado después de hacer los análisis
-
-Un análisis descriptivo y gráfico de las variables que considere y con el cual demuestre comportamientos de centralización, variabilidad, posición y curtosis de las variables
-
-En una segunda parte, deberá hacer inferencia estadística usando un nivel de significancia (alpha) de 5%.
-Para la inferencia deberá definir lo siguiente: • Las variables que considerará y su escala de medición.
-• La verificación de la normalidad cuando corresponda (tanto gráficamente como usando el test de Shapiro, u otros test que correspondan).
-• Las hipótesis a contrastar (bilateral o unilateral) en cada caso.
-• Parámetros a estimar.
-• Estimadores y sus modelos de probabilidad.
-• Si hay dos poblaciones que se comparan en promedio, deberá comprobar si las varianzas poblaciones se asumen iguales o no. • El criterio para decidir cuál hipótesis se elige, deberá ser a través de 2 criterios: el p-value (valor-p) y el intervalo de confianza.
-• Si hay más de dos (2) poblaciones a comparar en promedio, deberá proponer la mejor forma de comparar las medias.
-Proponga un método para comparar más de dos (2) poblaciones.
-• Si hay alguna de las variables a estudiar que no cumpla la Normalidad y deba incluirse en el estudio, de qué forma usted la incluiría para que no viole la condición de normalidad.
 
 # Introducción
 
@@ -115,7 +95,7 @@ Forma: Asimetría (skewness) y curtosis.
 
 Herramientas gráficas:
 
-```{r}
+```{r, echo=FALSE}
 # Variables cuantitativas de interés para el análisis descriptivo
 vars_cuantitativas_foco <- c("Cholesterol", "Fat")
 
@@ -159,7 +139,7 @@ for (var in vars_cuantitativas_foco) {
 }
 ```
 
-```{r}
+```{r, echo=FALSE}
 # Variables cualitativas de interés para el análisis descriptivo
 vars_cualitativas_foco <- c("Sex", "PriorSmoke")
 
@@ -179,7 +159,7 @@ for (var in vars_cualitativas_foco) {
   print(p_bar)
 }
 ```
-```{r}
+```{r, echo=FALSE}
 cat("### Gráfico de Colesterol por Género\n")
 ggplot(NutritionStudy, aes(x = Sex, y = Cholesterol, fill = Sex)) +
   geom_boxplot() +
@@ -197,7 +177,7 @@ ggplot(NutritionStudy, aes(x = PriorSmoke, y = Fat, fill = PriorSmoke)) +
 2. Verificación de Supuestos
 Normalidad
 Prueba: Shapiro-Wilk.
-```{r}
+```{r, echo=FALSE}
 # Función para verificar normalidad para cada grupo
 check_normality_by_group <- function(data, quantitative_var, group_var) {
   cat("\n--- Verificación de Normalidad para:", quantitative_var, "por", group_var, "---\n")
@@ -234,7 +214,7 @@ check_normality_by_group(NutritionStudy, "Fat", "PriorSmoke")
 Criterio: p>0.05 indica normalidad.
 
 Acciones ante no normalidad:
-```{r}
+```{r, echo=FALSE}
 # Renombrar las variables numéricas a categóricas para mejor interpretación
 NutritionStudy <- NutritionStudy %>%
   mutate(
@@ -244,7 +224,7 @@ NutritionStudy <- NutritionStudy %>%
 ```
 
 Transformaciones (logarítmica, raíz cuadrada).
-```{r inferencia_cholesterol_Sex_transformada}
+```{r inferencia_cholesterol_Sex_transformada, echo=FALSE}
 # Vuelve a verificar la normalidad con la variable logarítmica
 norm_male_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Male") %>% pull(Cholesterol_log)))$p.value >= 0.05
 norm_female_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Female") %>% pull(Cholesterol_log)))$p.value >= 0.05
@@ -283,13 +263,113 @@ Uso: Comparar medias de dos grupos independientes.
 
 
 Hipótesis:
-
+Hipótesis Nula ($H_0$): No hay diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres.
+Hipótesis Alternativa ($H_1$): Existe una diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres. (Bilateral)
 
 Estimadores:
-
+Medias poblacionales de colesterol (o su logaritmo) para hombres y mujeres.
 Diferencia de medias muestrales ().
+Si se cumplen los supuestos, distribución t de Student.
+```{r, echo=FALSE}
+cat("Procediendo con el test t paramétrico (variable transformada).\n")
+levene_test_chol <- car::leveneTest(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy)
+print(levene_test_chol)
+var_equal_chol <- levene_test_chol$`Pr(>F)`[1] >= 0.05
 
-Error estándar ajustado por varianzas (Welch si varianzas desiguales).
+if (var_equal_chol) {
+  cat("Las varianzas poblacionales se asumen iguales (p-value >= 0.05).\n")
+  ttest_res_chol <- t.test(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy, var.equal = TRUE)
+  test_type_chol <- paste("T-test (varianzas iguales) con", current_chol_var)
+} else {
+  cat("Las varianzas poblacionales no se asumen iguales (p-value < 0.05).\n")
+  ttest_res_chol <- t.test(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy, var.equal = FALSE)
+  test_type_chol <- paste("T-test de Welch (varianzas desiguales) con", current_chol_var)
+}
+cat("\nResultado del", test_type_chol, ":\n")
+print(ttest_res_chol)
+
+p_value_chol <- ttest_res_chol$p.value
+conf_interval_chol <- ttest_res_chol$conf.int
+  
+cat("\nCriterio de Decisión (Colesterol por Género):\n")
+cat("P-value:", round(p_value_chol, 4), "\n")
+if (!is.null(conf_interval_chol)) {
+  cat("Intervalo de Confianza para la diferencia de medias:", round(conf_interval_chol[1], 2), "a", round(conf_interval_chol[2], 2), "\n")
+}
+
+if (p_value_chol < 0.05) {
+  cat("Dado que el p-value (", round(p_value_chol, 4), ") es menor que 0.05, se rechaza la hipótesis nula.\n")
+  cat("Hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) del colesterol (o su logaritmo) entre hombres y mujeres.\n")
+} else {
+  cat("Dado que el p-value (", round(p_value_chol, 4), ") es mayor o igual que 0.05, no se rechaza la hipótesis nula.\n")
+  cat("No hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) del colesterol (o su logaritmo) entre hombres y mujeres.\n")
+}
+if (!is.null(conf_interval_chol) && 0 >= conf_interval_chol[1] && 0 <= conf_interval_chol[2]) {
+  cat("El intervalo de confianza incluye el cero, lo que refuerza la no significancia (o indica que la diferencia podría ser cero).\n")
+} else if (!is.null(conf_interval_chol)) {
+  cat("El intervalo de confianza no incluye el cero, lo que refuerza la significancia (o indica que la diferencia es distinta de cero).\n")
+}
+```
+Hipótesis:
+
+Hipótesis Nula ($H_0$): No hay diferencia significativa en la ingesta promedio de grasa (o su logaritmo) entre los diferentes grupos de fumadores.
+Hipótesis Alternativa ($H_1$): Al menos una de las medias de ingesta de grasa (o su logaritmo) es diferente entre los grupos de fumadores. (Bilateral)
+Parámetros a estimar:
+Medias poblacionales de ingesta de grasa (o su logaritmo) para cada grupo de fumadores.
+Estimadores:
+Medias muestrales de ingesta de grasa (o su logaritmo) para cada grupo.
+Modelo de probabilidad del estimador: 
+Si se cumplen los supuestos, el ANOVA F-statistic.
+```{r, echo=FALSE}
+cat("Procediendo con el ANOVA paramétrico (variable transformada).\n")
+levene_test_fat <- car::leveneTest(as.formula(paste(current_fat_var, "~ PriorSmoke")), data = NutritionStudy)
+print(levene_test_fat)
+var_equal_fat <- levene_test_fat$`Pr(>F)`[1] >= 0.05
+
+if (var_equal_fat) {
+  cat("Las varianzas poblacionales se asumen iguales (p-value >= 0.05). Procediendo con ANOVA.\n")
+  anova_res_fat <- aov(as.formula(paste(current_fat_var, "~ PriorSmoke")), data = NutritionStudy)
+  summary(anova_res_fat)
+  test_type_fat <- paste("ANOVA con", current_fat_var)
+  p_value_fat <- summary(anova_res_fat)[[1]][["Pr(>F)"]][1]
+
+  if (p_value_fat < 0.05) {
+    cat("El ANOVA es significativo. Realizando pruebas post-hoc (Tukey HSD).\n")
+    tukey_res_fat <- TukeyHSD(anova_res_fat)
+    print(tukey_res_fat)
+  } else {
+    cat("El ANOVA no es significativo.\n")
+  }
+
+} else { # Varianzas desiguales con variable transformada y normal
+  cat("Las varianzas poblacionales no se asumen iguales (p-value < 0.05) para la variable transformada. Se usará Kruskal-Wallis.\n")
+  kruskal_res_fat <- kruskal.test(Fat ~ PriorSmoke, data = NutritionStudy) # Siempre la original para no paramétrica
+  cat("\nResultado del Kruskal-Wallis Test:\n")
+  print(kruskal_res_fat)
+  test_type_fat <- "Kruskal-Wallis"
+  p_value_fat <- kruskal_res_fat$p.value
+
+  if (p_value_fat < 0.05) {
+    cat("El Kruskal-Wallis es significativo. Realizando pruebas post-hoc (Dunn's Test).\n")
+    # library(dunn.test) # Necesitas instalar este paquete
+    # dunn_res_fat <- dunn.test(NutritionStudy$Fat, NutritionStudy$PriorSmoke, method="bonferroni")
+    # print(dunn_res_fat)
+    cat("Para un análisis post-hoc con Kruskal-Wallis, se recomienda usar Dunn's Test (ej. con el paquete 'dunn.test' o 'PMCMRplus') para comparar pares de grupos.\n")
+  }
+}
+
+cat("\nCriterio de Decisión (Grasa por PriorSmoke):\n")
+cat("P-value del", test_type_fat, ":", round(p_value_fat, 4), "\n")
+
+if (p_value_fat < 0.05) {
+  cat("Dado que el p-value (", round(p_value_fat, 4), ") es menor que 0.05, se rechaza la hipótesis nula.\n")
+  cat("Hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) de la grasa (o su logaritmo) entre los grupos de fumadores.\n")
+} else {
+  cat("Dado que el p-value (", round(p_value_fat, 4), ") es mayor o igual que 0.05, no se rechaza la hipótesis nula.\n")
+  cat("No hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) de la grasa (o su logaritmo) entre los grupos de fumadores.\n")
+}
+```
+
 # Presentación de Resultados
 
 # Discución de los Resultados
@@ -297,18 +377,3 @@ Error estándar ajustado por varianzas (Welch si varianzas desiguales).
 # Recomendaciones
 
 # Referencias Bibliográficas
-
-```{r NutritionStudy}
-summary(NutritionStudy)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r Histograma de edades, echo=FALSE}
-ggplot(NutritionStudy, aes(x = Age)) +
-  geom_histogram()
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
