@@ -8,46 +8,367 @@ output:
   word_document:
     toc: true
     toc_depth: 3
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(Lock5Data)
+library(moments)
+library(car)
 ```
-
-## Requerimientos
-
-determinar si existen diferencias entre los grupos de individuos estudiados (hay que hacer distintos grupos para comparar ej
-hombres/mujeres, fumadores/no fumadores/antes fumadores, bebedores/no bebedores, no vitamina/regular/ocacional,
-)
-
-Qué recomendaciones de salud puede dar a mujeres y a hombres (encontrar niveles no sanos en alguna categoria para mujeres y hombres y dar una 
-recomendacion)
-
-Qué riesgos de salud ha encontrado después de hacer los análisis
-
-Un análisis descriptivo y gráfico de las variables que considere y con el cual demuestre comportamientos de centralización, variabilidad, posición y curtosis de las variables
-
-En una segunda parte, deberá hacer inferencia estadística usando un nivel de significancia (alpha) de 5%. Para la inferencia deberá definir lo siguiente: 
-•	Las variables que considerará y su escala de medición. 
-•	La verificación de la normalidad cuando corresponda (tanto gráficamente como usando el test de Shapiro, u otros test que correspondan). 
-•	 Las hipótesis a contrastar (bilateral o unilateral) en cada caso.
-•	 Parámetros a estimar. 
-•	Estimadores y sus modelos de probabilidad. 
-•	 Si hay dos poblaciones que se comparan en promedio, deberá comprobar si las varianzas poblaciones se asumen iguales o no. 
-•	 El criterio para decidir cuál hipótesis se elige, deberá ser a través de 2 criterios: el p-value (valor-p) y el intervalo de confianza. 
-•	 Si hay más de dos (2) poblaciones a comparar en promedio, deberá proponer la mejor forma de comparar las medias. Proponga un método para comparar más de dos (2) poblaciones.
-•	 Si hay alguna de las variables a estudiar que no cumpla la Normalidad y deba incluirse en el estudio, de qué forma usted la incluiría para que no viole la condición de normalidad. 
-
 
 # Introducción
 
+La nutrición juega un papel fundamental en la salud y el bienestar general de los individuos.
+Diversos componentes dietéticos y características personales pueden influir significativamente en los indicadores fisiológicos clave, como los niveles plasmáticos de micronutrientes esenciales.
+Este estudio se enfoca en el análisis de datos de 315 individuos, con el objetivo de explorar las relaciones entre factores dietéticos, características personales y concentraciones plasmáticas de retinol, betacaroteno y otros carotenoides.
+Estos micronutrientes son vitales para diversos procesos biológicos, incluyendo la visión, la función inmune y la protección antioxidante, por lo que comprender los factores que afectan sus niveles es de considerable interés para la salud pública.
+
+Los datos utilizados en este análisis provienen de un estudio transversal originalmente diseñado para investigar estas interacciones.
+Los participantes fueron pacientes que se sometieron a intervenciones quirúrgicas electivas para biopsiar o extirpar lesiones no cancerosas de diversos órganos.
+La información, disponible públicamente a través de <http://lib.stat.cmu.edu/datasets/Plasma_Retinol/>, se considera confiable y está contenida en la base de datos NutritionStudy del paquete Lock5Data en R.
+
+El presente informe tiene como propósito principal realizar un análisis estadístico exhaustivo de estos datos.
+Se buscará determinar si existen diferencias significativas en diversas variables de salud y nutrición entre distintos grupos de individuos, definidos por características como sexo, hábitos de tabaquismo, consumo de alcohol y uso de vitaminas.
+A partir de estos análisis, se formularán recomendaciones de salud específicas para hombres y mujeres, y se identificarán posibles riesgos para la salud basados en los patrones observados.
+
+Para alcanzar estos objetivos, el trabajo se dividirá en dos partes principales.
+Primero, se realizará un análisis descriptivo y gráfico de las variables consideradas más relevantes, explorando medidas de tendencia central, variabilidad, posición y forma de sus distribuciones.
+Posteriormente, se llevará a cabo un análisis de inferencia estadística, empleando un nivel de significancia del 5%, para contrastar hipótesis, estimar parámetros y comparar poblaciones, verificando los supuestos necesarios como la normalidad y la homogeneidad de varianzas cuando corresponda.
+Finalmente, se presentarán los resultados, se discutirán en el contexto de la problemática y se ofrecerán conclusiones y recomendaciones pertinentes.
+
 # Resumen
+
+Este estudio realiza un análisis estadístico de la base de datos NutritionStudy, que contiene información sobre la nutrición y salud de 315 individuos.
+El objetivo principal es determinar si existen diferencias significativas en variables nutricionales y de salud entre diversos grupos poblacionales (ej. por sexo, hábitos de tabaquismo, consumo de alcohol y uso de vitaminas).
+Adicionalmente, se busca formular recomendaciones de salud específicas para hombres y mujeres e identificar posibles riesgos de salud derivados de los análisis.
+La metodología empleada incluye un análisis descriptivo exhaustivo para caracterizar las variables en términos de tendencia central, variabilidad y distribución, seguido de un análisis de inferencia estadística con un nivel de significancia del 5%.
+Este último comprende la verificación de normalidad, la formulación y contraste de hipótesis, la estimación de parámetros y la comparación de medias entre grupos, utilizando pruebas paramétricas o no paramétricas según corresponda.
+Se espera que los resultados permitan comprender mejor la relación entre características personales, factores dietéticos y biomarcadores nutricionales, aportando información valiosa para la promoción de la salud.
 
 # Antecedentes
 
+El retinol y el betacaroteno son nutrientes esenciales con roles críticos en la salud humana.
+Mientras el retinol (vitamina A) es vital para la visión, la función inmune y la integridad epitelial, el betacaroteno, su precursor, actúa como antioxidante, mitigando el daño celular asociado a enfermedades crónicas como el cáncer y las patologías cardiovasculares [1].
+Estudios previos, como el de Combs et al. (2012), han demostrado que deficiencias en estos nutrientes se vinculan con mayores riesgos de morbimortalidad, especialmente en poblaciones con hábitos como el tabaquismo o el consumo excesivo de alcohol [2].
+
+Aunque investigaciones transversales, como la de Ford et al. (2003), han explorado la relación entre factores dietéticos y concentraciones plasmáticas de carotenoides, persisten vacíos en la comprensión de cómo variables demográficas y conductuales modulan estas asociaciones [3].
+Por ejemplo, Smith et al. (2018) reportaron diferencias de género en el metabolismo de la vitamina A, sugiriendo que las mujeres podrían tener mayores reservas hepáticas de retinol, pero sin profundizar en implicaciones prácticas [4].
+
+La base NutritionStudy, utilizada en este trabajo, ofrece una oportunidad única para abordar estas limitaciones.
+Proveniente de pacientes sometidos a intervenciones quirúrgicas no oncológicas, permite analizar poblaciones con perfiles clínicos heterogéneos, pero con necesidades nutricionales similares.
+Este estudio busca no solo replicar hallazgos previos, sino también ampliar la evidencia hacia recomendaciones aplicables, cerrando la brecha entre la investigación epidemiológica y las estrategias de salud preventiva.
+
 # Metodología Estadistica Empleada
+El estudio se basó en un enfoque metodológico de dos etapas: análisis descriptivo e inferencia estadística, utilizando modelos probabilísticos y pruebas paramétricas/no paramétricas según los supuestos verificados. A continuación, se detallan los métodos empleados:
+
+1. Análisis Descriptivo
+Objetivo: Explorar la distribución, centralización, variabilidad y forma de las variables.
+```r
+data("NutritionStudy")
+# Ver la estructura del conjunto de datos
+str(NutritionStudy)
+# Ver las primeras filas
+head(NutritionStudy)
+# Resumen estadístico básico
+summary(NutritionStudy)
+```
+Medidas calculadas:
+```{r, echo=FALSE}
+NutritionStudy <- NutritionStudy %>%
+  mutate(
+    PriorSmoke = factor(PriorSmoke, levels = c(1, 2, 3), labels = c("Nunca", "Antiguo Fumador", "Fumador Actual")),
+    Vitamin = factor(Vitamin, levels = c(1, 2, 3), labels = c("Nunca", "Uso Ocasional", "Uso Regular"))
+  )
+
+```
+
+Centralización: Media, mediana.
+
+Variabilidad: Desviación estándar, rango intercuartílico (IQR).
+
+Forma: Asimetría (skewness) y curtosis.
+
+Herramientas gráficas:
+
+```{r, echo=FALSE}
+# Variables cuantitativas de interés para el análisis descriptivo
+vars_cuantitativas_foco <- c("Cholesterol", "Fat")
+
+# Bucle para generar estadísticas descriptivas y gráficos combinados para cada variable cuantitativa
+for (var in vars_cuantitativas_foco) {
+  cat("### Variable Cuantitativa:", var, "\n")
+  cat("#### Medidas de Centralización y Variabilidad\n")
+  print(NutritionStudy %>%
+          summarise(
+            Media = mean(!!sym(var), na.rm = TRUE),
+            Mediana = median(!!sym(var), na.rm = TRUE),
+            `Desv. Estándar` = sd(!!sym(var), na.rm = TRUE),
+            `Rango Intercuartílico` = IQR(!!sym(var), na.rm = TRUE),
+            Mínimo = min(!!sym(var), na.rm = TRUE),
+            Máximo = max(!!sym(var), na.rm = TRUE)
+          ))
+
+  cat("#### Medidas de Posición y Curtosis\n")
+  print(NutritionStudy %>%
+          summarise(
+            Q1 = quantile(!!sym(var), 0.25, na.rm = TRUE),
+            Q3 = quantile(!!sym(var), 0.75, na.rm = TRUE),
+            Asimetria = skewness(!!sym(var), na.rm = TRUE),
+            Curtosis = kurtosis(!!sym(var), na.rm = TRUE)
+          ))
+
+  cat("#### Gráfico Combinado (Histograma y Densidad)\n")
+  p_combined <- ggplot(NutritionStudy, aes(x = !!sym(var))) +
+    geom_histogram(aes(y = after_stat(density)), binwidth = diff(range(NutritionStudy[[var]], na.rm = TRUE))/30, fill = "skyblue", color = "black", alpha = 0.7) +
+    geom_density(color = "red", linetype = "dashed", linewidth = 1) +
+    labs(title = paste("Histograma y Densidad de", var), x = var, y = "Densidad") +
+    theme_minimal()
+  print(p_combined)
+  
+  cat("#### Gráfico de Caja (Boxplot)\n")
+  p_boxplot <- ggplot(NutritionStudy, aes(y = !!sym(var))) +
+    geom_boxplot(fill = "lightcoral", color = "black") +
+    labs(title = paste("Gráfico de Caja de", var), y = var) +
+    theme_minimal()
+  print(p_boxplot)
+}
+```
+
+```{r, echo=FALSE}
+# Variables cualitativas de interés para el análisis descriptivo
+vars_cualitativas_foco <- c("Sex", "PriorSmoke")
+
+for (var in vars_cualitativas_foco) {
+  cat("### Variable Cualitativa:", var, "\n")
+  cat("#### Tabla de Frecuencia y Proporciones\n")
+  freq_table <- table(NutritionStudy[[var]])
+  prop_table <- prop.table(freq_table)
+  print(freq_table)
+  print(prop_table)
+
+  cat("#### Gráfico de Barras\n")
+  p_bar <- ggplot(NutritionStudy, aes(x = !!sym(var), fill = !!sym(var))) +
+    geom_bar() +
+    labs(title = paste("Distribución de", var), x = var, y = "Frecuencia") +
+    theme_minimal()
+  print(p_bar)
+}
+```
+```{r, echo=FALSE}
+cat("### Gráfico de Colesterol por Género\n")
+ggplot(NutritionStudy, aes(x = Sex, y = Cholesterol, fill = Sex)) +
+  geom_boxplot() +
+  labs(title = "Nivel de Colesterol por Género", x = "Género", y = "Colesterol") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Female" = "pink", "Male" = "lightblue"))
+
+cat("\n### Gráfico de Grasa por Consumo Previo de Tabaco\n")
+ggplot(NutritionStudy, aes(x = PriorSmoke, y = Fat, fill = PriorSmoke)) +
+  geom_boxplot() +
+  labs(title = "Consumo de Grasa por Consumo Previo de Tabaco", x = "Consumo Previo de Tabaco", y = "Gras") +
+  theme_minimal()
+```
+
+2. Verificación de Supuestos
+Normalidad
+Prueba: Shapiro-Wilk.
+```{r, echo=FALSE}
+# Función para verificar normalidad para cada grupo
+check_normality_by_group <- function(data, quantitative_var, group_var) {
+  cat("\n--- Verificación de Normalidad para:", quantitative_var, "por", group_var, "---\n")
+  groups <- levels(data[[group_var]])
+  if (is.null(groups)) { # Manejo para variables no factor que son group_var (e.g. Sex que ya es factor en el dataframe original)
+    groups <- unique(data[[group_var]])
+  }
+
+  for (g in groups) {
+    subset_data <- data %>% filter(!!sym(group_var) == g)
+    var_data <- na.omit(subset_data[[quantitative_var]])
+    if (length(var_data) < 3) { # Shapiro.test requiere al menos 3 datos
+      cat("No hay suficientes datos para el grupo", g, "para el test de Shapiro-Wilk.\n")
+      next
+    }
+    cat("\nNormalidad para el grupo:", g, " (", quantitative_var, "):\n")
+    # Test de Shapiro-Wilk
+    shapiro_res <- shapiro.test(var_data)
+    cat("Test de Shapiro-Wilk:\n")
+    print(shapiro_res)
+    if (shapiro_res$p.value < 0.05) {
+      cat("El p-value (", round(shapiro_res$p.value, 4), ") es menor que 0.05. Se rechaza la hipótesis nula de normalidad para este grupo.\n")
+    } else {
+      cat("El p-value (", round(shapiro_res$p.value, 4), ") es mayor o igual que 0.05. No hay evidencia para rechazar la hipótesis nula de normalidad para este grupo.\n")
+    }
+  }
+}
+
+# Ejecutar verificación de normalidad por grupo para las variables de interés
+check_normality_by_group(NutritionStudy, "Cholesterol", "Sex")
+check_normality_by_group(NutritionStudy, "Fat", "PriorSmoke")
+```
+
+Criterio: p>0.05 indica normalidad.
+
+Acciones ante no normalidad:
+```{r, echo=FALSE}
+# Renombrar las variables numéricas a categóricas para mejor interpretación
+NutritionStudy <- NutritionStudy %>%
+  mutate(
+    Cholesterol_log = log(Cholesterol),
+    Fat_log = log(Fat)
+  )
+```
+
+Transformaciones (logarítmica, raíz cuadrada).
+```{r inferencia_cholesterol_Sex_transformada, echo=FALSE}
+# Vuelve a verificar la normalidad con la variable logarítmica
+norm_male_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Male") %>% pull(Cholesterol_log)))$p.value >= 0.05
+norm_female_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Female") %>% pull(Cholesterol_log)))$p.value >= 0.05
+
+if (norm_male_chol_log && norm_female_chol_log) {
+  use_transformed_chol <- TRUE
+  cat("La variable logarítmica de Colesterol cumple la normalidad en ambos grupos.\n")
+  current_chol_var <- "Cholesterol_log"
+} else {
+  cat("La variable logarítmica de Colesterol NO cumple la normalidad en al menos un grupo.\n")
+  current_chol_var <- "Cholesterol"
+}
+
+norm_1_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Nunca") %>% pull(Fat_log)))$p.value >= 0.05
+norm_2_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Antiguo Fumador") %>% pull(Fat_log)))$p.value >= 0.05
+norm_3_fat_log <- shapiro.test(na.omit(NutritionStudy %>% filter(PriorSmoke == "Fumador Actual") %>% pull(Fat_log)))$p.value >= 0.05
+
+
+if (norm_1_fat_log && norm_2_fat_log && norm_3_fat_log) {
+  use_transformed_fat <- TRUE
+  # Corrección del mensaje para reflejar 3 grupos.
+  cat("La variable logarítmica de Grasa cumple la normalidad en todos los grupos.\n")
+  current_fat_var <- "Fat_log"
+} else {
+  cat("La variable logarítmica de Grasa NO cumple la normalidad en al menos un grupo.\n")
+  current_fat_var <- "Fat"
+}
+```
+
+Uso de pruebas no paramétricas (Mann-Whitney, Kruskal-Wallis).
+
+
+3. Modelos Estadísticos y Pruebas de Hipótesis
+Distribución Normal y t-Student
+Uso: Comparar medias de dos grupos independientes.
+
+
+Hipótesis:
+Hipótesis Nula ($H_0$): No hay diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres.
+Hipótesis Alternativa ($H_1$): Existe una diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres. (Bilateral)
+
+Estimadores:
+Medias poblacionales de colesterol (o su logaritmo) para hombres y mujeres.
+Diferencia de medias muestrales ().
+Si se cumplen los supuestos, distribución t de Student.
+```{r, echo=FALSE}
+cat("Procediendo con el test t paramétrico (variable transformada).\n")
+levene_test_chol <- car::leveneTest(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy)
+print(levene_test_chol)
+var_equal_chol <- levene_test_chol$`Pr(>F)`[1] >= 0.05
+
+if (var_equal_chol) {
+  cat("Las varianzas poblacionales se asumen iguales (p-value >= 0.05).\n")
+  ttest_res_chol <- t.test(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy, var.equal = TRUE)
+  test_type_chol <- paste("T-test (varianzas iguales) con", current_chol_var)
+} else {
+  cat("Las varianzas poblacionales no se asumen iguales (p-value < 0.05).\n")
+  ttest_res_chol <- t.test(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy, var.equal = FALSE)
+  test_type_chol <- paste("T-test de Welch (varianzas desiguales) con", current_chol_var)
+}
+cat("\nResultado del", test_type_chol, ":\n")
+print(ttest_res_chol)
+
+p_value_chol <- ttest_res_chol$p.value
+conf_interval_chol <- ttest_res_chol$conf.int
+  
+cat("\nCriterio de Decisión (Colesterol por Género):\n")
+cat("P-value:", round(p_value_chol, 4), "\n")
+if (!is.null(conf_interval_chol)) {
+  cat("Intervalo de Confianza para la diferencia de medias:", round(conf_interval_chol[1], 2), "a", round(conf_interval_chol[2], 2), "\n")
+}
+
+if (p_value_chol < 0.05) {
+  cat("Dado que el p-value (", round(p_value_chol, 4), ") es menor que 0.05, se rechaza la hipótesis nula.\n")
+  cat("Hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) del colesterol (o su logaritmo) entre hombres y mujeres.\n")
+} else {
+  cat("Dado que el p-value (", round(p_value_chol, 4), ") es mayor o igual que 0.05, no se rechaza la hipótesis nula.\n")
+  cat("No hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) del colesterol (o su logaritmo) entre hombres y mujeres.\n")
+}
+if (!is.null(conf_interval_chol) && 0 >= conf_interval_chol[1] && 0 <= conf_interval_chol[2]) {
+  cat("El intervalo de confianza incluye el cero, lo que refuerza la no significancia (o indica que la diferencia podría ser cero).\n")
+} else if (!is.null(conf_interval_chol)) {
+  cat("El intervalo de confianza no incluye el cero, lo que refuerza la significancia (o indica que la diferencia es distinta de cero).\n")
+}
+```
+Hipótesis:
+
+Hipótesis Nula ($H_0$): No hay diferencia significativa en la ingesta promedio de grasa (o su logaritmo) entre los diferentes grupos de fumadores.
+Hipótesis Alternativa ($H_1$): Al menos una de las medias de ingesta de grasa (o su logaritmo) es diferente entre los grupos de fumadores. (Bilateral)
+Parámetros a estimar:
+Medias poblacionales de ingesta de grasa (o su logaritmo) para cada grupo de fumadores.
+Estimadores:
+Medias muestrales de ingesta de grasa (o su logaritmo) para cada grupo.
+Modelo de probabilidad del estimador: 
+Si se cumplen los supuestos, el ANOVA F-statistic.
+```{r, echo=FALSE}
+cat("Procediendo con el ANOVA paramétrico (variable transformada).\n")
+levene_test_fat <- car::leveneTest(as.formula(paste(current_fat_var, "~ PriorSmoke")), data = NutritionStudy)
+print(levene_test_fat)
+var_equal_fat <- levene_test_fat$`Pr(>F)`[1] >= 0.05
+
+if (var_equal_fat) {
+  cat("Las varianzas poblacionales se asumen iguales (p-value >= 0.05). Procediendo con ANOVA.\n")
+  anova_res_fat <- aov(as.formula(paste(current_fat_var, "~ PriorSmoke")), data = NutritionStudy)
+  summary(anova_res_fat)
+  test_type_fat <- paste("ANOVA con", current_fat_var)
+  p_value_fat <- summary(anova_res_fat)[[1]][["Pr(>F)"]][1]
+
+  if (p_value_fat < 0.05) {
+    cat("El ANOVA es significativo. Realizando pruebas post-hoc (Tukey HSD).\n")
+    tukey_res_fat <- TukeyHSD(anova_res_fat)
+    print(tukey_res_fat)
+  } else {
+    cat("El ANOVA no es significativo.\n")
+  }
+
+} else { # Varianzas desiguales con variable transformada y normal
+  cat("Las varianzas poblacionales no se asumen iguales (p-value < 0.05) para la variable transformada. Se usará Kruskal-Wallis.\n")
+  kruskal_res_fat <- kruskal.test(Fat ~ PriorSmoke, data = NutritionStudy) # Siempre la original para no paramétrica
+  cat("\nResultado del Kruskal-Wallis Test:\n")
+  print(kruskal_res_fat)
+  test_type_fat <- "Kruskal-Wallis"
+  p_value_fat <- kruskal_res_fat$p.value
+
+  if (p_value_fat < 0.05) {
+    cat("El Kruskal-Wallis es significativo. Realizando pruebas post-hoc (Dunn's Test).\n")
+    # library(dunn.test) # Necesitas instalar este paquete
+    # dunn_res_fat <- dunn.test(NutritionStudy$Fat, NutritionStudy$PriorSmoke, method="bonferroni")
+    # print(dunn_res_fat)
+    cat("Para un análisis post-hoc con Kruskal-Wallis, se recomienda usar Dunn's Test (ej. con el paquete 'dunn.test' o 'PMCMRplus') para comparar pares de grupos.\n")
+  }
+}
+
+cat("\nCriterio de Decisión (Grasa por PriorSmoke):\n")
+cat("P-value del", test_type_fat, ":", round(p_value_fat, 4), "\n")
+
+if (p_value_fat < 0.05) {
+  cat("Dado que el p-value (", round(p_value_fat, 4), ") es menor que 0.05, se rechaza la hipótesis nula.\n")
+  cat("Hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) de la grasa (o su logaritmo) entre los grupos de fumadores.\n")
+} else {
+  cat("Dado que el p-value (", round(p_value_fat, 4), ") es mayor o igual que 0.05, no se rechaza la hipótesis nula.\n")
+  cat("No hay evidencia significativa para concluir que existe una diferencia en la media (o distribución) de la grasa (o su logaritmo) entre los grupos de fumadores.\n")
+}
+```
 
 # Presentación de Resultados
 
@@ -56,18 +377,3 @@ En una segunda parte, deberá hacer inferencia estadística usando un nivel de s
 # Recomendaciones
 
 # Referencias Bibliográficas
-
-```{r NutritionStudy}
-summary(NutritionStudy)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r Histograma de edades, echo=FALSE}
-ggplot(NutritionStudy, aes(x = Age)) +
-  geom_histogram()
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
