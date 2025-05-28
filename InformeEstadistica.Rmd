@@ -64,11 +64,13 @@ Proveniente de pacientes sometidos a intervenciones quirúrgicas no oncológicas
 Este estudio busca no solo replicar hallazgos previos, sino también ampliar la evidencia hacia recomendaciones aplicables, cerrando la brecha entre la investigación epidemiológica y las estrategias de salud preventiva.
 
 # Metodología Estadistica Empleada
-El estudio se basó en un enfoque metodológico de dos etapas: análisis descriptivo e inferencia estadística, utilizando modelos probabilísticos y pruebas paramétricas/no paramétricas según los supuestos verificados. A continuación, se detallan los métodos empleados:
 
-1. Análisis Descriptivo
-Objetivo: Explorar la distribución, centralización, variabilidad y forma de las variables.
-```r
+El estudio se basó en un enfoque metodológico de dos etapas: análisis descriptivo e inferencia estadística, utilizando modelos probabilísticos y pruebas paramétricas/no paramétricas según los supuestos verificados.
+A continuación, se detallan los métodos empleados:
+
+1.  Análisis Descriptivo Objetivo: Explorar la distribución, centralización, variabilidad y forma de las variables.
+
+``` r
 data("NutritionStudy")
 # Ver la estructura del conjunto de datos
 str(NutritionStudy)
@@ -77,7 +79,9 @@ head(NutritionStudy)
 # Resumen estadístico básico
 summary(NutritionStudy)
 ```
+
 Medidas calculadas:
+
 ```{r, echo=FALSE}
 NutritionStudy <- NutritionStudy %>%
   mutate(
@@ -159,6 +163,7 @@ for (var in vars_cualitativas_foco) {
   print(p_bar)
 }
 ```
+
 ```{r, echo=FALSE}
 cat("### Gráfico de Colesterol por Género\n")
 ggplot(NutritionStudy, aes(x = Sex, y = Cholesterol, fill = Sex)) +
@@ -174,9 +179,8 @@ ggplot(NutritionStudy, aes(x = PriorSmoke, y = Fat, fill = PriorSmoke)) +
   theme_minimal()
 ```
 
-2. Verificación de Supuestos
-Normalidad
-Prueba: Shapiro-Wilk.
+2.  Verificación de Supuestos Normalidad Prueba: Shapiro-Wilk.
+
 ```{r, echo=FALSE}
 # Función para verificar normalidad para cada grupo
 check_normality_by_group <- function(data, quantitative_var, group_var) {
@@ -211,9 +215,10 @@ check_normality_by_group(NutritionStudy, "Cholesterol", "Sex")
 check_normality_by_group(NutritionStudy, "Fat", "PriorSmoke")
 ```
 
-Criterio: p>0.05 indica normalidad.
+Criterio: p\>0.05 indica normalidad.
 
 Acciones ante no normalidad:
+
 ```{r, echo=FALSE}
 # Renombrar las variables numéricas a categóricas para mejor interpretación
 NutritionStudy <- NutritionStudy %>%
@@ -224,6 +229,7 @@ NutritionStudy <- NutritionStudy %>%
 ```
 
 Transformaciones (logarítmica, raíz cuadrada).
+
 ```{r inferencia_cholesterol_Sex_transformada, echo=FALSE}
 # Vuelve a verificar la normalidad con la variable logarítmica
 norm_male_chol_log <- shapiro.test(na.omit(NutritionStudy %>% filter(Sex == "Male") %>% pull(Cholesterol_log)))$p.value >= 0.05
@@ -256,20 +262,16 @@ if (norm_1_fat_log && norm_2_fat_log && norm_3_fat_log) {
 
 Uso de pruebas no paramétricas (Mann-Whitney, Kruskal-Wallis).
 
+3.  Modelos Estadísticos y Pruebas de Hipótesis Distribución Normal y t-Student Uso: Comparar medias de dos grupos independientes.
 
-3. Modelos Estadísticos y Pruebas de Hipótesis
-Distribución Normal y t-Student
-Uso: Comparar medias de dos grupos independientes.
+Hipótesis: Hipótesis Nula ($H_0$): No hay diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres.
+Hipótesis Alternativa ($H_1$): Existe una diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres.
+(Bilateral)
 
-
-Hipótesis:
-Hipótesis Nula ($H_0$): No hay diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres.
-Hipótesis Alternativa ($H_1$): Existe una diferencia significativa en el nivel promedio de colesterol (o su logaritmo) entre hombres y mujeres. (Bilateral)
-
-Estimadores:
-Medias poblacionales de colesterol (o su logaritmo) para hombres y mujeres.
+Estimadores: Medias poblacionales de colesterol (o su logaritmo) para hombres y mujeres.
 Diferencia de medias muestrales ().
 Si se cumplen los supuestos, distribución t de Student.
+
 ```{r, echo=FALSE}
 cat("Procediendo con el test t paramétrico (variable transformada).\n")
 levene_test_chol <- car::leveneTest(as.formula(paste(current_chol_var, "~ Sex")), data = NutritionStudy)
@@ -310,16 +312,15 @@ if (!is.null(conf_interval_chol) && 0 >= conf_interval_chol[1] && 0 <= conf_inte
   cat("El intervalo de confianza no incluye el cero, lo que refuerza la significancia (o indica que la diferencia es distinta de cero).\n")
 }
 ```
+
 Hipótesis:
 
 Hipótesis Nula ($H_0$): No hay diferencia significativa en la ingesta promedio de grasa (o su logaritmo) entre los diferentes grupos de fumadores.
-Hipótesis Alternativa ($H_1$): Al menos una de las medias de ingesta de grasa (o su logaritmo) es diferente entre los grupos de fumadores. (Bilateral)
-Parámetros a estimar:
-Medias poblacionales de ingesta de grasa (o su logaritmo) para cada grupo de fumadores.
-Estimadores:
-Medias muestrales de ingesta de grasa (o su logaritmo) para cada grupo.
-Modelo de probabilidad del estimador: 
-Si se cumplen los supuestos, el ANOVA F-statistic.
+Hipótesis Alternativa ($H_1$): Al menos una de las medias de ingesta de grasa (o su logaritmo) es diferente entre los grupos de fumadores.
+(Bilateral) Parámetros a estimar: Medias poblacionales de ingesta de grasa (o su logaritmo) para cada grupo de fumadores.
+Estimadores: Medias muestrales de ingesta de grasa (o su logaritmo) para cada grupo.
+Modelo de probabilidad del estimador: Si se cumplen los supuestos, el ANOVA F-statistic.
+
 ```{r, echo=FALSE}
 cat("Procediendo con el ANOVA paramétrico (variable transformada).\n")
 levene_test_fat <- car::leveneTest(as.formula(paste(current_fat_var, "~ PriorSmoke")), data = NutritionStudy)
@@ -373,7 +374,38 @@ if (p_value_fat < 0.05) {
 # Presentación de Resultados
 
 # Discución de los Resultados
+Los resultados obtenidos en este estudio proporcionan información valiosa sobre las relaciones entre variables nutricionales, características personales y hábitos de vida. A continuación, se discuten los hallazgos más relevantes:
 
+Diferencias en los niveles de colesterol por género:
+El análisis no mostró diferencias significativas en los niveles de colesterol entre hombres y mujeres, ya sea utilizando la variable original o su transformación logarítmica. Esto sugiere que, en esta muestra, el género no es un factor determinante en los niveles de colesterol. Este resultado contrasta con algunos estudios previos que han reportado diferencias de género en el metabolismo lipídico, lo que podría deberse a características específicas de la población analizada o a otros factores no considerados en este estudio.
+
+Ingesta de grasa y hábitos de tabaquismo:
+No se encontraron diferencias significativas en la ingesta de grasa entre los distintos grupos de fumadores (nunca fumadores, antiguos fumadores y fumadores actuales). Este hallazgo es interesante, ya que podría indicar que el consumo de grasa no está directamente asociado con el hábito de fumar en esta población. Sin embargo, es importante considerar que otros factores dietéticos o de estilo de vida podrían estar influyendo en estos resultados.
+
+Normalidad de las variables:
+La verificación de normalidad reveló que algunas variables, como el colesterol y la grasa, no seguían una distribución normal en su forma original. Sin embargo, las transformaciones logarítmicas permitieron mejorar la normalidad en algunos casos, lo que facilitó el uso de pruebas paramétricas. Este enfoque metodológico aseguró que los análisis fueran robustos y confiables.
+
+Limitaciones del estudio:
+Es importante reconocer que este estudio tiene limitaciones, como el tamaño de la muestra y la naturaleza transversal de los datos, que no permiten establecer relaciones causales. Además, no se consideraron todas las posibles variables confusoras, como la actividad física o la ingesta calórica total, lo que podría afectar la interpretación de los resultados.
+
+En resumen, los resultados sugieren que, en esta población, el género y el hábito de tabaquismo no están significativamente asociados con los niveles de colesterol o la ingesta de grasa. Sin embargo, se necesitan más estudios para explorar estas relaciones en contextos más amplios y con diseños longitudinales.
 # Recomendaciones
+Basándonos en los resultados obtenidos, se proponen las siguientes recomendaciones:
 
+Promoción de hábitos saludables independientemente del género:
+Dado que no se encontraron diferencias significativas en los niveles de colesterol entre hombres y mujeres, las campañas de salud pública podrían enfocarse en promover hábitos saludables (como una dieta equilibrada y ejercicio regular) para toda la población, sin distinción de género.
+
+Enfoque integral para fumadores:
+Aunque no se detectaron diferencias en la ingesta de grasa entre fumadores y no fumadores, se recomienda que los programas de cesación tabáquica incluyan asesoramiento nutricional para asegurar una dieta saludable, ya que el tabaquismo por sí mismo es un factor de riesgo para múltiples enfermedades.
+
+Monitoreo continuo de niveles de colesterol:
+Dada la importancia del colesterol como factor de riesgo cardiovascular, se sugiere que los individuos mantengan un monitoreo regular de sus niveles lipídicos, independientemente de su género o hábitos de tabaquismo.
+
+Investigación futura:
+Se recomienda realizar estudios adicionales con muestras más grandes y diseños longitudinales para explorar con mayor profundidad las relaciones entre género, tabaquismo y variables nutricionales. Además, sería valioso incluir otras variables como actividad física y patrones dietéticos completos.
+
+Educación nutricional:
+Implementar programas educativos que enfaticen la importancia de una dieta balanceada y baja en grasas saturadas, dirigidos a toda la población, con énfasis en grupos de riesgo como fumadores y personas con antecedentes familiares de enfermedades cardiovasculares.
+
+Estas recomendaciones buscan contribuir a la mejora de la salud pública y al bienestar de la población, basándose en evidencia estadística sólida y contextualizada.
 # Referencias Bibliográficas
